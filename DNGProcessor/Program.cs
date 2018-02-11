@@ -126,7 +126,6 @@ namespace DNGProcessor
                         if (byteLength != 0)
                         {
                             d = new byte[byteLength];
-
                             if (byteLength <= 4)
                             {
                                 Buffer.BlockCopy(b, offset, d, 0, d.Length);
@@ -136,12 +135,8 @@ namespace DNGProcessor
                                 dataPos = BitConverter.ToInt32(b, offset);
                                 Buffer.BlockCopy(b, dataPos, d, 0, d.Length);
                             }
-                        }
-                        offset += 4;
 
-                        var stringData = new List<string>();;
-                        if (d != null) //Should always happen
-                        {
+                            var stringData = new List<string>();
                             if (type == TIFFTagValueType.Byte)
                             {
                                 stringData.Add(String.Join(" ", d));
@@ -196,22 +191,25 @@ namespace DNGProcessor
                                     stringData.Add(dbl.ToString());
                                 }
                             }
+                            
+                            int count = stringData.Count;
+                            if (count == 0)
+                            {
+                                stringData.Add($"*{dataPos}");
+                            }
+                            else if (count > 9)
+                            {
+                                stringData = stringData.GetRange(0, 9);
+                                stringData.Add($"({(count - 9)} more..)");
+                            }
+
+                            Console.WriteLine(type + "\tL" + length + "\t" + tag.ToString().PadRight(25) + "\t" + string.Join(" ", stringData));
                         }
 
-                        int count = stringData.Count;
-                        if (count == 0)
-                        {
-                            stringData.Add($"*{dataPos}");
-                        }
-                        else if (count > 9)
-                        {
-                            stringData = stringData.GetRange(0, 9);
-                            stringData.Add($"({(count - 9)} more..)");
-                        }
-
-                        Console.WriteLine(type + "\tL" + length + "\t" + tag.ToString().PadRight(25) + "\t" + string.Join(" ", stringData));
+                        offset += 4;
                     }
 
+                    //Stop tag parsing after first tag
                     break;
                 }
             }
